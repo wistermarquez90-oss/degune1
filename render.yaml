@@ -14,16 +14,6 @@ services:
         fromDatabase:
           name: dengue-db
           property: connectionString
-      - key: APP_ID
-        sync: false
-      - key: APP_SECRET
-        sync: false
-      - key: KIMI_AUTH_URL
-        sync: false
-      - key: KIMI_OPEN_URL
-        sync: false
-      - key: OWNER_UNION_ID
-        sync: false
       - key: JWT_SECRET
         generateValue: true
     autoDeploy: true

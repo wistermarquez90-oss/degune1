@@ -6,7 +6,7 @@ import { admins } from "@db/schema";
 import { SignJWT, jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.APP_SECRET || "dengue-secret-key-2026-change-in-production"
+  process.env.JWT_SECRET || "dengue-secret-key-2026-change-in-production"
 );
 
 export async function createToken(adminId: number, username: string, role: string) {
