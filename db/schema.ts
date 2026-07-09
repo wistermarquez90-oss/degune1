@@ -1,21 +1,31 @@
 import {
-  mysqlTable,
-  mysqlEnum,
+  pgTable,
+  pgEnum,
   serial,
   varchar,
   text,
   timestamp,
-  int,
+  integer,
   date,
-} from "drizzle-orm/mysql-core";
+} from "drizzle-orm/pg-core";
 
-export const users = mysqlTable("users", {
+export const roleEnum = pgEnum("role", ["user", "admin"]);
+export const sexoEnum = pgEnum("sexo", ["M", "F"]);
+export const hospitalizadoEnum = pgEnum("hospitalizado", ["SI", "NO"]);
+export const diagnosticoEnum = pgEnum("diagnostico", [
+  "DENGUE SIN SIGNOS DE ALARMA",
+  "DENGUE CON SIGNOS DE ALARMA",
+]);
+export const muestraEnum = pgEnum("muestra", ["SI", "NO"]);
+export const adminRoleEnum = pgEnum("admin_role", ["admin", "superadmin"]);
+
+export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   unionId: varchar("unionId", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 320 }),
   avatar: text("avatar"),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: roleEnum("role").default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt")
     .defaultNow()
@@ -28,19 +38,16 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 // ─── Dengue Cases Table ───
-export const dengueCases = mysqlTable("dengue_cases", {
+export const dengueCases = pgTable("dengue_cases", {
   id: serial("id").primaryKey(),
   semana: varchar("semana", { length: 10 }).notNull(),
   fecha: date("fecha").notNull(),
   nombresApellidos: varchar("nombres_apellidos", { length: 255 }).notNull(),
-  edad: int("edad").notNull(),
-  sexo: mysqlEnum("sexo", ["M", "F"]).notNull(),
-  hospitalizado: mysqlEnum("hospitalizado", ["SI", "NO"]).notNull(),
-  diagnostico: mysqlEnum("diagnostico", [
-    "DENGUE SIN SIGNOS DE ALARMA",
-    "DENGUE CON SIGNOS DE ALARMA",
-  ]).notNull(),
-  muestra: mysqlEnum("muestra", ["SI", "NO"]).notNull(),
+  edad: integer("edad").notNull(),
+  sexo: sexoEnum("sexo").notNull(),
+  hospitalizado: hospitalizadoEnum("hospitalizado").notNull(),
+  diagnostico: diagnosticoEnum("diagnostico").notNull(),
+  muestra: muestraEnum("muestra").notNull(),
   direccion: text("direccion"),
   parroquia: varchar("parroquia", { length: 100 }).notNull(),
   municipio: varchar("municipio", { length: 100 }).notNull(),
@@ -56,12 +63,12 @@ export type DengueCase = typeof dengueCases.$inferSelect;
 export type InsertDengueCase = typeof dengueCases.$inferInsert;
 
 // ─── Local Admins Table (password-based auth) ───
-export const admins = mysqlTable("admins", {
+export const admins = pgTable("admins", {
   id: serial("id").primaryKey(),
   username: varchar("username", { length: 100 }).notNull().unique(),
   passwordHash: varchar("password_hash", { length: 255 }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
-  role: mysqlEnum("role", ["admin", "superadmin"]).default("admin").notNull(),
+  role: adminRoleEnum("role").default("admin").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at")
     .defaultNow()

@@ -20,6 +20,10 @@ app.use("/api/trpc/*", async (c) => {
     createContext,
   });
 });
+
+// Health check endpoint for Render
+app.get("/api/health", (c) => c.json({ status: "ok", timestamp: new Date().toISOString() }));
+
 app.all("/api/*", (c) => c.json({ error: "Not Found" }, 404));
 
 export default app;
