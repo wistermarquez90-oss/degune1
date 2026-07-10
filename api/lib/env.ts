@@ -20,7 +20,9 @@ export const env = {
   kimiOpenUrl: optional("KIMI_OPEN_URL"),
   ownerUnionId: optional("OWNER_UNION_ID"),
 
-  // Required
+  // Required — lazy getter so it doesn't throw on module import
   isProduction: process.env.NODE_ENV === "production",
-  databaseUrl: required("DATABASE_URL"),
+  get databaseUrl() {
+    return required("DATABASE_URL");
+  },
 };
