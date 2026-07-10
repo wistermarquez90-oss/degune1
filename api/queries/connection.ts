@@ -16,3 +16,11 @@ export function getDb() {
   }
   return instance;
 }
+
+export async function closeDb() {
+  if (pool) {
+    await pool.end();
+    pool = undefined;
+    instance = undefined as any;
+  }
+}

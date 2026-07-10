@@ -6,6 +6,7 @@ import { appRouter } from "./router";
 import { createContext } from "./context";
 import { env } from "./lib/env";
 import { Paths } from "@contracts/constants";
+import { execSync } from "child_process";
 
 const app = new Hono<{ Bindings: HttpBindings }>();
 
@@ -16,6 +17,19 @@ if (env.kimiAuthUrl) {
   const { createOAuthCallbackHandler } = await import("./kimi/auth");
   app.get(Paths.oauthCallback, createOAuthCallbackHandler());
 }
+
+// Migration endpoint — runs drizzle-kit push
+app.post("/api/migrate", async (c) => {
+  try {
+    execSync("npx drizzle-kit push", {
+      stdio: "pipe",
+      env: { ...process.env, NODE_ENV: "production" },
+    });
+    return c.json({ success: true, message: "Migrations applied" });
+  } catch (error: any) {
+    return c.json({ success: false, error: error.message }, 500);
+  }
+});
 
 app.use("/api/trpc/*", async (c) => {
   return fetchRequestHandler({

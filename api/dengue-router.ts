@@ -68,13 +68,13 @@ export const dengueRouter = createRouter({
     const db = getDb();
 
     const totalCases = await db
-      .select({ count: sql<number>`count(*)` })
+      .select({ count: sql<number>`count(*)::int` })
       .from(dengueCases);
 
     const bySexo = await db
       .select({
         sexo: dengueCases.sexo,
-        count: sql<number>`count(*)`,
+        count: sql<number>`count(*)::int`,
       })
       .from(dengueCases)
       .groupBy(dengueCases.sexo);
@@ -82,7 +82,7 @@ export const dengueRouter = createRouter({
     const byDiagnostico = await db
       .select({
         diagnostico: dengueCases.diagnostico,
-        count: sql<number>`count(*)`,
+        count: sql<number>`count(*)::int`,
       })
       .from(dengueCases)
       .groupBy(dengueCases.diagnostico);
@@ -90,7 +90,7 @@ export const dengueRouter = createRouter({
     const bySemana = await db
       .select({
         semana: dengueCases.semana,
-        count: sql<number>`count(*)`,
+        count: sql<number>`count(*)::int`,
       })
       .from(dengueCases)
       .groupBy(dengueCases.semana)
@@ -99,27 +99,27 @@ export const dengueRouter = createRouter({
     const byMunicipio = await db
       .select({
         municipio: dengueCases.municipio,
-        count: sql<number>`count(*)`,
+        count: sql<number>`count(*)::int`,
       })
       .from(dengueCases)
       .groupBy(dengueCases.municipio)
-      .orderBy(sql`count(*) DESC`)
+      .orderBy(sql<number>`count(*)::int DESC`)
       .limit(10);
 
     const byParroquia = await db
       .select({
         parroquia: dengueCases.parroquia,
-        count: sql<number>`count(*)`,
+        count: sql<number>`count(*)::int`,
       })
       .from(dengueCases)
       .groupBy(dengueCases.parroquia)
-      .orderBy(sql`count(*) DESC`)
+      .orderBy(sql<number>`count(*)::int DESC`)
       .limit(10);
 
     const hospitalizados = await db
       .select({
         hospitalizado: dengueCases.hospitalizado,
-        count: sql<number>`count(*)`,
+        count: sql<number>`count(*)::int`,
       })
       .from(dengueCases)
       .groupBy(dengueCases.hospitalizado);
