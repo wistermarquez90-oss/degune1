@@ -227,6 +227,17 @@ export const dengueRouter = createRouter({
       return { success: true };
     }),
 
+  // ─── Admin: Delete many cases ───
+  deleteMany: adminQuery
+    .input(z.object({ ids: z.array(z.number()).min(1) }))
+    .mutation(async ({ input }) => {
+      const db = getDb();
+      for (const id of input.ids) {
+        await db.delete(dengueCases).where(eq(dengueCases.id, id));
+      }
+      return { success: true, deleted: input.ids.length };
+    }),
+
   // ─── Public: Filter options ───
   filterOptions: publicQuery.query(async () => {
     const db = getDb();

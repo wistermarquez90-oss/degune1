@@ -66,7 +66,8 @@ export default function Admin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [deleteManyConfirm, setDeleteManyConfirm] = useState(false);
   const pageSize = 15;
 
   useEffect(() => {
@@ -107,6 +108,16 @@ export default function Admin() {
       utils.dengue.stats.invalidate();
       utils.dengue.filterOptions.invalidate();
       setDeleteConfirm(null);
+    },
+  });
+
+  const deleteManyMutation = trpc.dengue.deleteMany.useMutation({
+    onSuccess: () => {
+      utils.dengue.list.invalidate();
+      utils.dengue.stats.invalidate();
+      utils.dengue.filterOptions.invalidate();
+      setSelectedIds(new Set());
+      setDeleteManyConfirm(false);
     },
   });
 
@@ -179,6 +190,36 @@ export default function Admin() {
   const confirmDelete = () => {
     if (deleteConfirm !== null) {
       deleteMutation.mutate({ id: deleteConfirm });
+    }
+  };
+
+  const toggleSelection = (id: number) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  const toggleAllSelection = () => {
+    if (selectedIds.size === filteredCases.length && filteredCases.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredCases.map((c) => c.id)));
+    }
+  };
+
+  const handleDeleteMany = () => {
+    if (selectedIds.size > 0) {
+      setDeleteManyConfirm(true);
+    }
+  };
+
+  const confirmDeleteMany = () => {
+    if (selectedIds.size > 0) {
+      deleteManyMutation.mutate({ ids: Array.from(selectedIds) });
     }
   };
 
@@ -329,6 +370,14 @@ export default function Admin() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+                      <th className="px-3 py-3 text-center font-semibold text-gray-500 text-xs uppercase tracking-wider">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.size > 0 && selectedIds.size === filteredCases.length}
+                          onChange={toggleAllSelection}
+                          className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                        />
+                      </th>
                       <th className="px-3 py-3 text-left font-semibold text-gray-500 text-xs uppercase tracking-wider">
                         ID
                       </th>
@@ -395,6 +444,14 @@ export default function Admin() {
                           exit={{ opacity: 0 }}
                           className="hover:bg-red-50/30 transition-colors group"
                         >
+                          <td className="px-3 py-2.5 text-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.has(c.id)}
+                              onChange={() => toggleSelection(c.id)}
+                              className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                            />
+                          </td>
                           <td className="px-3 py-2.5 text-gray-400 font-mono text-[10px]">
                             {c.id}
                           </td>
@@ -815,6 +872,52 @@ export default function Admin() {
                     <>
                       <Trash2 className="w-4 h-4" />
                       Eliminar
+                    </>
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Many Confirmation Dialog */}
+      <AnimatePresence>
+        {deleteManyConfirm && (
+          <Dialog open={deleteManyConfirm} onOpenChange={() => setDeleteManyConfirm(false)}>
+            <DialogContent className="max-w-sm border-0 shadow-2xl">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-lg">
+                  <AlertTriangle className="w-5 h-5 text-red-500" />
+                  Confirmar Eliminación Masiva
+                </DialogTitle>
+              </DialogHeader>
+              <div className="py-4">
+                <p className="text-sm text-gray-600">
+                  ¿Estás seguro de que deseas eliminar <strong>{selectedIds.size}</strong> {selectedIds.size === 1 ? "caso" : "casos"}? Esta acción no se puede deshacer.
+                </p>
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setDeleteManyConfirm(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={confirmDeleteMany}
+                  disabled={deleteManyMutation.isPending}
+                  className="bg-red-600 hover:bg-red-700 gap-2"
+                >
+                  {deleteManyMutation.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Eliminando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Eliminar {selectedIds.size}
                     </>
                   )}
                 </Button>
