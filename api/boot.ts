@@ -111,9 +111,14 @@ app.post("/api/migrate", async (c) => {
       const defaultHash = hashSync("admin123", 10);
       await client.query(
         `INSERT INTO admins (username, password_hash, name, role) VALUES ($1, $2, $3, $4)`,
-        ["admin", defaultHash, "Administrador", "superadmin"]
+        ["admin", defaultHash, "Administrador", "admin"]
       );
     }
+
+    // Fix existing admin role if it's superadmin (for backwards compatibility)
+    await client.query(
+      `UPDATE admins SET role = 'admin' WHERE role = 'superadmin'`
+    );
 
     client.release();
 
