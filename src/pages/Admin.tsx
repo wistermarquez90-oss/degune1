@@ -35,6 +35,7 @@ import {
   Save,
   AlertTriangle,
   Upload,
+  FileDown,
 } from "lucide-react";
 
 const SEMANAS = Array.from({ length: 52 }, (_, i) => `SEM ${i + 1}`);
@@ -121,6 +122,61 @@ export default function Admin() {
       setDeleteManyConfirm(false);
     },
   });
+
+  const exportQuery = trpc.dengue.exportAll.useQuery(undefined, {
+    enabled: false, // no auto-fetch
+  });
+
+  const handleExport = async () => {
+    const result = await exportQuery.refetch();
+    if (!result.data || result.data.length === 0) {
+      alert("No hay datos para exportar");
+      return;
+    }
+
+    const data = result.data;
+    const headers = [
+      "ID", "Semana", "Fecha", "Nombres y Apellidos", "Edad", "Sexo",
+      "Hospitalizado", "Diagnostico", "Muestra", "Direccion", "Parroquia",
+      "Municipio", "Reportado Por",
+    ];
+
+    const rows = data.map((c) => [
+      c.id,
+      c.semana,
+      c.fecha ? new Date(c.fecha).toLocaleDateString("es-VE") : "",
+      c.nombresApellidos,
+      c.edad,
+      c.sexo,
+      c.hospitalizado,
+      c.diagnostico,
+      c.muestra,
+      c.direccion || "",
+      c.parroquia,
+      c.municipio,
+      c.reportadoPor,
+    ]);
+
+    const escape = (v: unknown) => {
+      const s = String(v ?? "");
+      if (s.includes(",") || s.includes('"') || s.includes("\n")) {
+        return `"${s.replace(/"/g, '""')}"`;
+      }
+      return s;
+    };
+
+    const csv = [headers.join(","), ...rows.map((r) => r.map(escape).join(","))].join("\n");
+
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `dengue_export_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -349,6 +405,23 @@ export default function Admin() {
               Importar
             </Button>
           </Link>
+          <Button
+            onClick={handleExport}
+            disabled={exportQuery.isFetching}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-200 transition-all hover:shadow-xl hover:shadow-blue-300 hover:-translate-y-0.5 gap-2"
+          >
+            {exportQuery.isFetching ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Exportando...
+              </>
+            ) : (
+              <>
+                <FileDown className="w-4 h-4" />
+                Exportar
+              </>
+            )}
+          </Button>
           <Button
             onClick={handleNew}
             className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg shadow-red-200 transition-all hover:shadow-xl hover:shadow-red-300 hover:-translate-y-0.5 gap-2"

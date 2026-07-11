@@ -238,6 +238,13 @@ export const dengueRouter = createRouter({
       return { success: true, deleted: input.ids.length };
     }),
 
+  // ─── Admin: Export all cases ───
+  exportAll: adminQuery.query(async () => {
+    const db = getDb();
+    const allCases = await db.select().from(dengueCases).orderBy(asc(dengueCases.id));
+    return allCases;
+  }),
+
   // ─── Public: Filter options ───
   filterOptions: publicQuery.query(async () => {
     const db = getDb();
