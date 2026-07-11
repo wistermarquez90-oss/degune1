@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
+import ImportExcel from "@/components/ImportExcel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -306,6 +307,9 @@ export default function Admin() {
             Nuevo Caso
           </Button>
         </motion.div>
+
+        {/* Import Excel */}
+        <ImportExcel />
 
         {/* Table */}
         <motion.div

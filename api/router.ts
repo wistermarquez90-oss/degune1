@@ -1,6 +1,7 @@
 import { authRouter } from "./auth-router";
 import { localAuthRouter } from "./local-auth-router";
 import { dengueRouter } from "./dengue-router";
+import { importRouter } from "./import-router";
 import { createRouter, publicQuery } from "./middleware";
 
 export const appRouter = createRouter({
@@ -8,6 +9,7 @@ export const appRouter = createRouter({
   auth: authRouter,
   localAuth: localAuthRouter,
   dengue: dengueRouter,
+  import: importRouter,
 });
 
 export type AppRouter = typeof appRouter;
