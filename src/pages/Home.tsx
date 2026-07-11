@@ -215,7 +215,62 @@ export default function Home() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <MeridaMap data={mapData} selectedSemana={selectedSemana} />
+                  <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                    {/* Map */}
+                    <div className="lg:col-span-3">
+                      <MeridaMap data={mapData} selectedSemana={selectedSemana} />
+                    </div>
+
+                    {/* Table */}
+                    <div className="lg:col-span-2">
+                      <div className="border rounded-lg overflow-hidden">
+                        <div className="bg-gray-100 px-3 py-2 text-xs font-bold text-gray-700 border-b">
+                          DENGUE: NÚMERO DE CASOS POR MUNICIPIO
+                          {selectedSemana ? ` — ${selectedSemana}` : ""}
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="bg-gray-50 text-gray-600">
+                                <th className="px-2 py-1.5 text-left font-semibold border-b w-10">Orden</th>
+                                <th className="px-2 py-1.5 text-left font-semibold border-b">Municipio</th>
+                                <th className="px-2 py-1.5 text-right font-semibold border-b w-16">N° Casos</th>
+                                <th className="px-2 py-1.5 text-right font-semibold border-b w-14">%</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {(() => {
+                                const totalMap = mapData.reduce((sum, d) => sum + d.count, 0);
+                                const sorted = [...mapData].sort((a, b) => b.count - a.count);
+                                return sorted.map((item, idx) => {
+                                  const pct = totalMap > 0 ? ((item.count / totalMap) * 100).toFixed(2) : "0.00";
+                                  let rowClass = "border-b border-gray-100 hover:bg-gray-50";
+                                  if (idx < 3) rowClass = "border-b border-gray-100 bg-red-50 hover:bg-red-100";
+                                  else if (item.count >= 16) rowClass = "border-b border-gray-100 bg-orange-50 hover:bg-orange-100";
+                                  else if (item.count >= 3) rowClass = "border-b border-gray-100 bg-yellow-50 hover:bg-yellow-100";
+                                  else if (item.count > 0) rowClass = "border-b border-gray-100 bg-green-50 hover:bg-green-100";
+                                  return (
+                                    <tr key={item.municipio} className={rowClass}>
+                                      <td className="px-2 py-1.5 font-medium text-gray-500">{idx + 1}</td>
+                                      <td className="px-2 py-1.5 font-medium text-gray-800">{item.municipio}</td>
+                                      <td className="px-2 py-1.5 text-right font-semibold text-gray-900">{item.count}</td>
+                                      <td className="px-2 py-1.5 text-right text-gray-600">{pct}%</td>
+                                    </tr>
+                                  );
+                                });
+                              })()}
+                              <tr className="bg-gray-100 font-bold">
+                                <td className="px-2 py-2 text-gray-700"></td>
+                                <td className="px-2 py-2 text-gray-700">ESTADO MÉRIDA</td>
+                                <td className="px-2 py-2 text-right text-gray-900">{mapData.reduce((sum, d) => sum + d.count, 0)}</td>
+                                <td className="px-2 py-2 text-right text-gray-900">100.00%</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
