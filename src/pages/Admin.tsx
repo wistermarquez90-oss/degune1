@@ -66,6 +66,7 @@ export default function Admin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [deleteManyConfirm, setDeleteManyConfirm] = useState(false);
   const pageSize = 15;
@@ -357,6 +358,25 @@ export default function Admin() {
           </Button>
         </motion.div>
 
+        {selectedIds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="flex items-center gap-3 mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg"
+          >
+            <span className="text-sm text-red-700 font-medium">
+              {selectedIds.size} {selectedIds.size === 1 ? "caso seleccionado" : "casos seleccionados"}
+            </span>
+            <Button
+              onClick={handleDeleteMany}
+              className="bg-red-600 hover:bg-red-700 text-white text-xs h-8 gap-1"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Eliminar seleccionados
+            </Button>
+          </motion.div>
+        )}
 
         {/* Table */}
         <motion.div
@@ -416,7 +436,7 @@ export default function Admin() {
                   <tbody className="divide-y divide-gray-50">
                     {casesLoading ? (
                       <tr>
-                        <td colSpan={11} className="px-4 py-16 text-center">
+                        <td colSpan={12} className="px-4 py-16 text-center">
                           <div className="flex flex-col items-center gap-3">
                             <div className="w-8 h-8 border-3 border-red-200 border-t-red-600 rounded-full animate-spin" />
                             <p className="text-sm text-gray-400">
@@ -428,7 +448,7 @@ export default function Admin() {
                     ) : filteredCases.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={11}
+                          colSpan={12}
                           className="px-4 py-16 text-center text-gray-400"
                         >
                           No se encontraron casos
