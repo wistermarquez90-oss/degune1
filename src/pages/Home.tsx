@@ -1,9 +1,18 @@
+import { useState } from "react";
 import { trpc } from "@/providers/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router";
 import { motion } from "framer-motion";
+import MeridaMap from "@/components/MeridaMap";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   BarChart,
   Bar,
@@ -27,6 +36,7 @@ import {
   Shield,
   TrendingUp,
   MapPin,
+  CalendarDays,
 } from "lucide-react";
 
 const COLORS_SEXO = ["#3b82f6", "#ec4899"];
@@ -43,7 +53,12 @@ const fadeInUp = {
 };
 
 export default function Home() {
+  const [selectedSemana, setSelectedSemana] = useState<string | undefined>(undefined);
+
   const { data: stats } = trpc.dengue.stats.useQuery();
+  const { data: allMunicipios } = trpc.dengue.allMunicipios.useQuery();
+  const { data: casesByMunicipioSemana } = trpc.dengue.casesByMunicipioSemana.useQuery();
+  const { data: filterOptions } = trpc.dengue.filterOptions.useQuery();
 
   const totalHosp = stats?.hospitalizados.find(h => h.hospitalizado === 'SI')?.count || 0;
   const totalConAlarma = stats?.byDiagnostico.find(d => d.diagnostico === 'DENGUE CON SIGNOS DE ALARMA')?.count || 0;
@@ -68,9 +83,14 @@ export default function Home() {
     };
   }) || [];
 
+  const mapData = selectedSemana
+    ? (casesByMunicipioSemana
+        ?.filter((d) => d.semana === selectedSemana)
+        .map((d) => ({ municipio: d.municipio, count: d.count })) || [])
+    : (allMunicipios?.map((d) => ({ municipio: d.municipio, count: d.count })) || []);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* Header */}
       <motion.header
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -107,36 +127,32 @@ export default function Home() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {stats && (
           <>
-            {/* Hero Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
               {[
                 {
                   label: "Total Casos",
                   value: stats.total,
-                  sub: `${stats.bySemana.length} semanas reportadas`,
+                  sub: stats.bySemana.length + " semanas reportadas",
                   icon: Users,
                   color: "from-blue-500 to-blue-600",
-                  shadow: "shadow-blue-200",
                   iconBg: "bg-blue-50",
                   iconColor: "text-blue-600",
                 },
                 {
                   label: "Hospitalizados",
                   value: totalHosp,
-                  sub: `${pctHosp}% del total`,
+                  sub: pctHosp + "% del total",
                   icon: Hospital,
                   color: "from-orange-500 to-orange-600",
-                  shadow: "shadow-orange-200",
                   iconBg: "bg-orange-50",
                   iconColor: "text-orange-600",
                 },
                 {
                   label: "Con Signos de Alarma",
                   value: totalConAlarma,
-                  sub: `${pctAlarma}% del total`,
+                  sub: pctAlarma + "% del total",
                   icon: AlertTriangle,
                   color: "from-red-500 to-red-600",
-                  shadow: "shadow-red-200",
                   iconBg: "bg-red-50",
                   iconColor: "text-red-600",
                 },
@@ -146,7 +162,6 @@ export default function Home() {
                   sub: "Epidemiológicas",
                   icon: TrendingUp,
                   color: "from-emerald-500 to-emerald-600",
-                  shadow: "shadow-emerald-200",
                   iconBg: "bg-emerald-50",
                   iconColor: "text-emerald-600",
                 },
@@ -159,7 +174,7 @@ export default function Home() {
                   variants={fadeInUp}
                 >
                   <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-white overflow-hidden group">
-                    <div className={`h-1 bg-gradient-to-r ${stat.color}`} />
+                    <div className={"h-1 bg-gradient-to-r " + stat.color} />
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -167,8 +182,8 @@ export default function Home() {
                           <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
                           <p className="text-xs text-gray-400 mt-1">{stat.sub}</p>
                         </div>
-                        <div className={`${stat.iconBg} p-2.5 rounded-xl`}>
-                          <stat.icon className={`w-5 h-5 ${stat.iconColor}`} />
+                        <div className={stat.iconBg + " p-2.5 rounded-xl"}>
+                          <stat.icon className={"w-5 h-5 " + stat.iconColor} />
                         </div>
                       </div>
                     </CardContent>
@@ -177,11 +192,48 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Charts Row 1 */}
+            <motion.div
+              custom={4}
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
+              className="mb-5"
+            >
+              <Card className="border-0 shadow-lg bg-white">
+                <CardHeader className="pb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-red-500" />
+                      Mapa de Casos por Municipio
+                    </CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CalendarDays className="w-4 h-4 text-gray-400" />
+                      <Select
+                        value={selectedSemana || "todas"}
+                        onValueChange={(v) => setSelectedSemana(v === "todas" ? undefined : v)}
+                      >
+                        <SelectTrigger className="w-48 h-9 text-xs bg-gray-50">
+                          <SelectValue placeholder="Todas las semanas" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todas">Todas las semanas</SelectItem>
+                          {filterOptions?.semanas.map((s) => (
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <MeridaMap data={mapData} selectedSemana={selectedSemana} />
+                </CardContent>
+              </Card>
+            </motion.div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-              {/* Area Chart - Trend */}
               <motion.div
-                custom={4}
+                custom={5}
                 initial="hidden"
                 animate="visible"
                 variants={fadeInUp}
@@ -220,9 +272,8 @@ export default function Home() {
                 </Card>
               </motion.div>
 
-              {/* Pie Chart - Sexo */}
               <motion.div
-                custom={5}
+                custom={6}
                 initial="hidden"
                 animate="visible"
                 variants={fadeInUp}
@@ -271,11 +322,9 @@ export default function Home() {
               </motion.div>
             </div>
 
-            {/* Charts Row 2 */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-              {/* Diagnóstico Pie */}
               <motion.div
-                custom={6}
+                custom={7}
                 initial="hidden"
                 animate="visible"
                 variants={fadeInUp}
@@ -323,9 +372,8 @@ export default function Home() {
                 </Card>
               </motion.div>
 
-              {/* Municipios Bar */}
               <motion.div
-                custom={7}
+                custom={8}
                 initial="hidden"
                 animate="visible"
                 variants={fadeInUp}
@@ -360,9 +408,8 @@ export default function Home() {
               </motion.div>
             </div>
 
-            {/* Top Parroquias */}
             <motion.div
-              custom={8}
+              custom={9}
               initial="hidden"
               animate="visible"
               variants={fadeInUp}
@@ -419,9 +466,8 @@ export default function Home() {
               </Card>
             </motion.div>
 
-            {/* CTA */}
             <motion.div
-              custom={9}
+              custom={10}
               initial="hidden"
               animate="visible"
               variants={fadeInUp}
@@ -451,7 +497,6 @@ export default function Home() {
         )}
       </main>
 
-      {/* Footer */}
       <footer className="bg-white border-t border-gray-100 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-2">
           <p className="text-xs text-gray-400">Sistema de Vigilancia Epidemiológica del Dengue - Estado Mérida, Venezuela 2026</p>

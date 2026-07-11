@@ -270,4 +270,33 @@ export const dengueRouter = createRouter({
       municipios: municipios.map((m) => m.municipio),
     };
   }),
+
+  // ─── Public: All municipios with counts (no limit) ───
+  allMunicipios: publicQuery.query(async () => {
+    const db = getDb();
+    const result = await db
+      .select({
+        municipio: dengueCases.municipio,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(dengueCases)
+      .groupBy(dengueCases.municipio)
+      .orderBy(asc(dengueCases.municipio));
+    return result;
+  }),
+
+  // ─── Public: Cases by municipio and semana ───
+  casesByMunicipioSemana: publicQuery.query(async () => {
+    const db = getDb();
+    const result = await db
+      .select({
+        municipio: dengueCases.municipio,
+        semana: dengueCases.semana,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(dengueCases)
+      .groupBy(dengueCases.municipio, dengueCases.semana)
+      .orderBy(asc(dengueCases.municipio), asc(dengueCases.semana));
+    return result;
+  }),
 });
