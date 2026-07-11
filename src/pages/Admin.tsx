@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { trpc } from "@/providers/trpc";
 import { useAuth } from "@/hooks/useAuth";
-import ImportExcel from "@/components/ImportExcel";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +34,7 @@ import {
   LogOut,
   Save,
   AlertTriangle,
+  Upload,
 } from "lucide-react";
 
 const SEMANAS = Array.from({ length: 52 }, (_, i) => `SEM ${i + 1}`);
@@ -299,6 +299,14 @@ export default function Admin() {
               </button>
             )}
           </div>
+          <Link to="/import">
+            <Button
+              className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg shadow-green-200 transition-all hover:shadow-xl hover:shadow-green-300 hover:-translate-y-0.5 gap-2"
+            >
+              <Upload className="w-4 h-4" />
+              Importar
+            </Button>
+          </Link>
           <Button
             onClick={handleNew}
             className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg shadow-red-200 transition-all hover:shadow-xl hover:shadow-red-300 hover:-translate-y-0.5 gap-2"
@@ -308,8 +316,6 @@ export default function Admin() {
           </Button>
         </motion.div>
 
-        {/* Import Excel */}
-        <ImportExcel />
 
         {/* Table */}
         <motion.div
