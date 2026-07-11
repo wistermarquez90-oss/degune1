@@ -94,8 +94,8 @@ export default function MeridaMap({ data, selectedSemana }: Props) {
   }, [data, selectedSemana]);
 
   return (
-    <div className="relative" style={{ minHeight: "400px" }}>
-      <div ref={containerRef} className="w-full flex justify-center" />
+    <div className="relative w-full" style={{ minHeight: "500px" }}>
+      <div ref={containerRef} className="w-full flex justify-center items-center" style={{ height: "500px" }} />
 
       {/* Tooltip */}
       <AnimatePresence>
