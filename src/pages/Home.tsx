@@ -7,13 +7,6 @@ import { Link } from "react-router";
 import { motion } from "framer-motion";
 import MeridaMap from "@/components/MeridaMap";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   BarChart,
   Bar,
   XAxis,
@@ -208,20 +201,16 @@ export default function Home() {
                     </CardTitle>
                     <div className="flex items-center gap-2">
                       <CalendarDays className="w-4 h-4 text-gray-400" />
-                      <Select
+                      <select
                         value={selectedSemana || "todas"}
-                        onValueChange={(v) => setSelectedSemana(v === "todas" ? undefined : v)}
+                        onChange={(e) => setSelectedSemana(e.target.value === "todas" ? undefined : e.target.value)}
+                        className="w-48 h-9 px-3 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent cursor-pointer"
                       >
-                        <SelectTrigger className="w-48 h-9 text-xs bg-gray-50">
-                          <SelectValue placeholder="Todas las semanas" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="todas">Todas las semanas</SelectItem>
-                          {filterOptions?.semanas.map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        <option value="todas">Todas las semanas</option>
+                        {filterOptions?.semanas.map((s) => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 </CardHeader>
